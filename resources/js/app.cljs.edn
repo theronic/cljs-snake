@@ -1,0 +1,2 @@
+{:require  [snake.app]
+ :init-fns [snake.app/init]}
