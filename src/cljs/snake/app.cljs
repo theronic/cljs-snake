@@ -1,6 +1,8 @@
 (ns snake.app
   (:require [reagent.core :as reagent :refer [atom cursor]]))
 
+(enable-console-print!)
+
 (defn parent-component []
   [:div
    {:style {:text-align "center"
