@@ -3,9 +3,9 @@
 
 (enable-console-print!)
 
-(def width 12)
-(def height 12)
-(def !tick-interval (atom 250))
+(def width 16)
+(def height 16)
+(def tick-interval 250)
 (def min-pills (int (* width height 0.02)))
 (def init-size 3)
 
@@ -55,7 +55,7 @@
 
 (defn next-state [{:keys [position size velocity direction pills history] :as state}]
   (let [snake         (set (take size history))
-        found-pill?   (pills position)       
+        found-pill?   (pills position)
         [dx dy]       velocity
         new-vel       (case direction                       ; 90-degree rotation matrices
                             :left [dy (- dx)]
@@ -74,25 +74,24 @@
       :pills (into pills new-pills)
       :size (if found-pill? (inc size) size))))
 
-(defn world-view [{:as state :keys [pills size history position]}]
-  (let [worm (set (take size history))]
-    [:div
-     (for [y (range height)
-           x (range width)]
-       (let [pos       [x y]
-             cell-type (cond
-                         (= position pos) :head
-                         (worm pos) :worm
-                         (pills pos) :pill)]
-         ^{:key [x y]}
-         [cell-view x y cell-type]))]))
+(defn tick! []
+  (if (and (not @!dead?) (not @!paused?))
+    (swap! !state next-state)))
 
-(defn game-container [!state]
-  (r/with-let [_ (js/window.addEventListener "keydown" handle-keys!)
-               tick! #(if (and (not @!dead?) (not @!paused?))
-                        (swap! !state next-state))
-               interval (js/setInterval tick! @!tick-interval)]
-              [world-view @!state]
+(defn world-view [{:as state :keys [pills size history position]}]
+  (r/with-let [_ (.addEventListener js/window "keydown" handle-keys!)
+               interval (js/setInterval tick! tick-interval)]
+              (let [worm (set (take size history))]
+                ^{:key "world"} [:div
+                                 (for [y (range height)
+                                       x (range width)]
+                                   (let [pos       [x y]
+                                         cell-type (cond
+                                                     (= position pos) :head
+                                                     (worm pos) :worm
+                                                     (pills pos) :pill)]
+                                     ^{:key [x y]}
+                                     [cell-view x y cell-type]))])
               (finally
                 (js/clearInterval interval)
                 (js/window.removeEventListener "keydown" handle-keys!))))
@@ -103,17 +102,15 @@
      [:h1 {:style {:margin 0}} "Snake in ~100 lines of ClojureScript"]
      [:p
       [:button {:on-click #(reset! !state initial-state)} "New Game"] " "
-      [:button {:on-click #(swap! !state next-state)} "Tick!"] " "
+      [:button {:on-click #(tick!)} "Tick!"] " "
       [:button {:on-click #(swap! size inc)} "Grow!"] " "
-      ;[:button {:on-click #(swap! !tick-interval - 10)} "Faster"] " "
-      ;[:button {:on-click #(swap! !tick-interval + 10)} "Slower"] " "
       [:button {:on-click #(swap! !paused? not)} "Pause"]]
      [:h2 "Score: " (- (:size @!state) init-size)]
      (if (:dead? @!state)
        [:div
         [:h2 "Game Over"]
         [:h3 "Press enter to try again :)"]]
-       [game-container !state])
+       [world-view @!state])
      [:pre {:style {:clear "left" :white-space "normal"}}
       (str @!state)]
      [:p {:style {:clear "left"}} "Source Code:"
