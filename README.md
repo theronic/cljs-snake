@@ -19,6 +19,14 @@ boot dev
 
 When it's done compiling, open `http://localhost:8002/`
 
+## To Build for Production:
+
+```
+boot prod
+```
+
+This will write out artifacts to the `docs` folder.
+
 ## Features:
 
 You can:
