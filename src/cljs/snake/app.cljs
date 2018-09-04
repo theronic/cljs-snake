@@ -1,11 +1,11 @@
 (ns snake.app
-  (:require [reagent.core :as r :refer [atom cursor]]))
+  (:require [reagent.core :as r :refer [atom cursor]]
+            [cljs.pprint :as pprint]))
 
 (enable-console-print!)
 
 (def width 12)
 (def height 12)
-(def !tick-interval (atom 250))
 (def min-pills (int (* width height 0.02)))
 (def init-size 3)
 
@@ -16,9 +16,11 @@
    :velocity [-1 0]
    :size     init-size
    :dead?    false
+   :interval 250
    :pills    #{[4 4] [5 8]}})
 
 (defonce !state (atom initial-state))
+(def !tick-interval (cursor !state [:interval]))
 (def !paused? (cursor !state [:paused?]))
 (def !dead? (cursor !state [:dead?]))
 
@@ -69,7 +71,7 @@
       :dead? (if (snake new-pos) true false)
       :direction nil
       :velocity new-vel
-      :history (take 100 (conj history position))
+      :history (take size (conj history position))
       :position new-pos
       :pills (into pills new-pills)
       :size (if found-pill? (inc size) size))))
@@ -87,13 +89,14 @@
          ^{:key [x y]}
          [cell-view x y cell-type]))]))
 
-(defn game-container [!state]
+(defn game-container [!state !tick-interval]
   (r/with-let [_ (js/window.addEventListener "keydown" handle-keys!)
                tick! #(if (and (not @!dead?) (not @!paused?))
                         (swap! !state next-state))
                interval (js/setInterval tick! @!tick-interval)]
               [world-view @!state]
               (finally
+                (prn "clearing interval" (:tick-interval @!state))
                 (js/clearInterval interval)
                 (js/window.removeEventListener "keydown" handle-keys!))))
 
@@ -101,7 +104,6 @@
   (let [size (cursor !state [:size])]
     [:div
      [:p
-      [:button {:on-click #(reset! !state initial-state)} "New Game"] " "
       [:button {:on-click #(swap! !state next-state)} "Tick!"] " "
       [:button {:on-click #(swap! size inc)} "Grow!"] " "
       ;[:button {:on-click #(swap! !tick-interval - 10)} "Faster"] " "
@@ -111,10 +113,10 @@
      (if (:dead? @!state)
        [:div
         [:h2 "Game Over"]
-        [:h3 "Press enter to try again :)"]]
-       [game-container !state])
-     [:pre {:style {:clear "left" :white-space "normal"}}
-      "Game State: " (pr-str @!state)]]))
+        [:button {:on-click #(reset! !state initial-state)} "Play Again!"]]
+       [game-container !state !tick-interval])
+     [:pre {:style {:clear "left"}}
+      "Game State: " (with-out-str (pprint/pprint @!state))]]))
 
 (defn ^:export init []
   (r/render-component [parent-component] (.getElementById js/document "container")))

@@ -1,27 +1,60 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Snakes On A Plane</title>
-    <style type="text/css">
-      body { font-family: "Segoe UI Light", "Segoe", "Segoe WP", "Segoe UI", "Helvetica Neue", Roboto, "Open Sans", sans-serif; }
-      .grid {
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 2fr));
-        grid-gap: 1.62em;
-      }
-    </style>
-  </head>
-  <body>
-  <div class="grid">
+<head>
+  <meta charset="utf-8">
+  <title>Snake in 100 Lines of Code</title>
+  <meta name="keywords" content="clojurescript,snake,javascript,react,frontend">
+  <meta name="author" content="Petrus Theron">
+  <style type="text/css">
+    body {
+      font-family: "Segoe UI Light", "Segoe", "Segoe WP", "Segoe UI", "Helvetica Neue", Roboto, "Open Sans", sans-serif;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 2fr));
+      grid-gap: 1.62em;
+    }
+
+    kbd {
+      display: inline-block;
+      margin: 0 .1em;
+      padding: .1em .6em;
+      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #242729;
+      text-shadow: 0 1px 0 #FFF;
+      background-color: #e1e3e5;
+      border: 1px solid #adb3b9;
+      border-radius: 3px;
+      box-shadow: 0 1px 0 rgba(12, 13, 14, 0.2), 0 0 0 2px #FFF inset;
+      white-space: nowrap;
+    }
+  </style>
+  <meta property="og:url" content="http://theronic.github.io/cljs-snake/"/>
+  <meta property="og:type" content="article"/>
+  <meta property="og:title" content="Snake in 100 Lines of Code"/>
+  <meta property="og:description" content="Snake in 100 Lines of Code"/>
+  <meta property="og:image" content="https://s3-eu-west-1.amazonaws.com/petrus-blog/snake-gameplay-3.gif"/>
+</head>
+<body>
+<div>
+  <h1>Snake in ~100 lines of ClojureScript</h1>
+  <p><strong>Instructions:</strong> press <kbd>Left</kbd> or <kbd>Right</kbd> to turn the snake. <kbd>Space</kbd> to
+    toggle pause.</p>
+</div>
+<div class="grid">
+  <div>
     <div id="container">Loading Snake written in 100 lines of ClojureScript...</div>
-    <div id="source">
-      <h1>Snake in ~100 lines of ClojureScript</h1>
-      <h2><a href="https://github.com/theronic/snake-cljs">Source Code</a> by <a href="http://petrustheron.com/">Petrus Theron</a></h2>
-      <script src="http://gist-it.appspot.com/https://github.com/theronic/cljs-snake/blob/master/src/cljs/snake/app.cljs"></script>
-    </div>
   </div>
-  <hr/>
-    <script type="text/javascript" src="js/app.js"></script>
-  </body>
+  <div id="source">
+    <h2><a href="https://github.com/theronic/snake-cljs">Source Code</a> by <a href="http://petrustheron.com/">Petrus
+      Theron</a></h2>
+    <script src="https://gist-it.appspot.com/https://github.com/theronic/cljs-snake/blob/master/src/cljs/snake/app.cljs"></script>
+  </div>
+</div>
+<hr/>
+<script type="text/javascript" src="js/app.js"></script>
+</body>
 </html>

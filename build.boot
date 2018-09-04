@@ -50,7 +50,7 @@
         (watch)
         ;(generate-index-page)
         (cljs)
-        (target :dir #{"target/prod"})))
+        (target :dir #{"docs"})))
 
 (deftask dev
   "Simple alias to run application in development mode"
