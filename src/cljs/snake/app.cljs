@@ -100,7 +100,6 @@
 (defn parent-component []
   (let [size (cursor !state [:size])]
     [:div
-     [:h1 {:style {:margin 0}} "Snake in ~100 lines of ClojureScript"]
      [:p
       [:button {:on-click #(reset! !state initial-state)} "New Game"] " "
       [:button {:on-click #(swap! !state next-state)} "Tick!"] " "
@@ -115,11 +114,7 @@
         [:h3 "Press enter to try again :)"]]
        [game-container !state])
      [:pre {:style {:clear "left" :white-space "normal"}}
-      (str @!state)]
-     [:p {:style {:clear "left"}} "Source Code:"
-      [:a {:href "https://github.com/pate/snake-cljs"}
-       "github.com/pate/snake-cljs"]]
-     [:iframe {:src "/src/app.cljs.txt" :width "100%" :height "600"}]]))
+      "Game State: " (pr-str @!state)]]))
 
 (defn ^:export init []
   (r/render-component [parent-component] (.getElementById js/document "container")))
