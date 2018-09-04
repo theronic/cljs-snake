@@ -40,7 +40,7 @@
             :border-right  "1px solid #777"
             :border-bottom "1px solid #777"}}])
 
-(defn handle-keys! [event]
+(defn handle-keys! [!state event] ;; ideally this should emit an event, not mutate state directly
   (let [key (.-keyCode event)]
     (case key
       32 (swap! !paused? not)                               ; spacebar
@@ -89,15 +89,16 @@
          [cell-view x y cell-type]))]))
 
 (defn game-container [!state !tick-interval]
-  (r/with-let [_ (js/window.addEventListener "keydown" handle-keys!)
+  (r/with-let [key-handler (partial handle-keys! !state)
+               _ (js/window.addEventListener "keydown" key-handler)
                tick! #(if (and (not @!dead?) (not @!paused?))
                         (swap! !state next-state))
                interval (js/setInterval tick! @!tick-interval)]
               [world-view @!state]
               (finally
-                (prn "clearing interval" (:tick-interval @!state))
                 (js/clearInterval interval)
-                (js/window.removeEventListener "keydown" handle-keys!))))
+                (js/window.removeEventListener "keydown" key-handler))))
+
 
 (defn parent-component []
   (let [size (cursor !state [:size])]
@@ -113,7 +114,7 @@
        [:div
         [:h2 "Game Over"]
         [:button {:on-click #(reset! !state initial-state)} "Play Again!"]]
-       ^{:key @!tick-interval} [game-container !state !tick-interval])
+       ^{:key (:interval @!state)} [game-container !state !tick-interval])
      [:pre {:style {:clear "left"}}
       "Game State: " (with-out-str (pprint/pprint @!state))]]))
 
