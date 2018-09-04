@@ -106,7 +106,7 @@
       [:button {:on-click #(swap! size inc)} "Grow!"] " "
       ;[:button {:on-click #(swap! !tick-interval - 10)} "Faster"] " "
       ;[:button {:on-click #(swap! !tick-interval + 10)} "Slower"] " "
-      [:button {:on-click #(swap! !paused? not)} "Pause"]]
+      [:button {:on-click #(swap! !paused? not)} (if @!paused? "Unpause" "Pause")]]
      [:h2 "Score: " (- (:size @!state) init-size)]
      (if (:dead? @!state)
        [:div
