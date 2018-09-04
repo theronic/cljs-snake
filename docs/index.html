@@ -4,11 +4,24 @@
     <meta charset="utf-8">
     <title>Snakes On A Plane</title>
     <style type="text/css">
-      body { font-family: Georgia; }
+      body { font-family: "Segoe UI Light", "Segoe", "Segoe WP", "Segoe UI", "Helvetica Neue", Roboto, "Open Sans", sans-serif; }
+      .grid {
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 2fr));
+        grid-gap: 1.62em;
+      }
     </style>
   </head>
   <body>
+  <div class="grid">
     <div id="container">Loading Snake written in 100 lines of ClojureScript...</div>
+    <div id="source">
+      <h1>Snake in ~100 lines of ClojureScript</h1>
+      <h2><a href="https://github.com/theronic/snake-cljs">Source Code</a> by <a href="http://petrustheron.com/">Petrus Theron</a></h2>
+      <script src="http://gist-it.appspot.com/https://github.com/theronic/cljs-snake/blob/master/src/cljs/snake/app.cljs"></script>
+    </div>
+  </div>
+  <hr/>
     <script type="text/javascript" src="js/app.js"></script>
   </body>
 </html>
