@@ -6,6 +6,7 @@
    [adzerk/boot-cljs-repl "0.1.9" :scope "test"]
    [adzerk/boot-reload "0.3.1" :scope "test"]
    [pandeiro/boot-http "0.6.2" :scope "test"]
-   [reagent "0.5.0"]]
+   [reagent "0.5.0"]
+   [rum ""0.11.4"]]
   :source-paths
   ["src/cljs"])
