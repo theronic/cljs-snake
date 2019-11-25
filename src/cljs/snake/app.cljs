@@ -97,13 +97,13 @@
     {:did-mount    (fn [state]
                      (js/console.log "mount!")
                      (let [key-handler (partial handle-keys! !state)
-                           comp     (:rum/react-component state)]
+                           comp        (:rum/react-component state)]
                        (.addEventListener js/window "keydown" key-handler)
                        (assoc state ::interval (js/setInterval #(when (and (not @!dead?) (not @!paused?))
                                                                   (let [last @last-render]
                                                                     (js/console.log "tick!" (- (reset! last-render (js/Date.)) last)))
                                                                   (swap! !state next-state)
-                                                                  (rum/request-render comp) @!tick-interval))
+                                                                  (rum/request-render comp)) @!tick-interval)
                                     ;(rum/request-render comp)) @!tick-interval)
                                     ::key-handler key-handler)))
      :will-unmount (fn [state]
@@ -170,17 +170,5 @@
 (defonce !el (atom nil))
 
 (defn ^:export init []
-  ;(reset! !el (.getElementById js/document "container"))
-  ;(render-loop)
-
   (js/console.log "init!")
-
-  ;(js/console.log "mount!")
-  (let [key-handler (partial handle-keys! !state)]
-        ;comp        (:rum/react-component state)]
-    (.addEventListener js/window "keydown" key-handler)
-    (reset! !interval (js/setInterval #(when (and (not @!dead?) (not @!paused?))
-                                         (let [last @last-render]
-                                           (js/console.log "tick!" (- (reset! last-render (js/Date.)) last)))
-                                         (swap! !state next-state)) @!tick-interval)))
   (rum/mount (parent-component !state) (.getElementById js/document "container")))
