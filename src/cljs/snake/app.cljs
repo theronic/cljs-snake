@@ -95,25 +95,18 @@
 
 (rum/defc game-container
   < rum/static
-    {:did-update   (fn [{:as state}]; :keys [interval]]
-                     (js/console.log "update!" (pr-str state))
+    {:did-update   (fn [{:as state}]
                      (js/clearInterval (::interval state))
                      (assoc state ::interval (js/setInterval #(when (and (not @!dead?) (not @!paused?))
-                                                                (let [last @last-render]
-                                                                  (js/console.log "tick!" (- (reset! last-render (js/Date.)) last)))
                                                                 (swap! !state next-state))
-                                                             ;(rum/request-render comp))
                                                              @!tick-interval)))
      :did-mount    (fn [state]
-                     (js/console.log "mount!")
                      (let [key-handler (partial handle-keys! !state)
                            comp        (:rum/react-component state)]
                        (.addEventListener js/window "keydown" key-handler)
-                       (assoc state
-                         ::key-handler key-handler)))
+                       (assoc state ::key-handler key-handler)))
      :will-unmount (fn [state]
-                     (js/console.log "unmount!" (pr-str (:rum/args state)))
-                     (js/clearInterval (::interval state))
+                     (js/clearInterval (::interval state)) ;; eww
                      (.removeEventListener js/window "keydown" (::key-handler state))
                      (dissoc state ::interval ::key-handler))}
   [!state interval]
@@ -136,40 +129,8 @@
      (if (:dead? state)
        [:div
         [:h2 "Game Over"]]
-       ^{:key (:interval state)}  ;(::ainterval state)
-       (game-container !state (rum/react !tick-interval)))])) ;; !tick-interval]))
-
-(defonce !interval (atom nil))
-
-(defn render! [] ; [canvas]
-  (let [el  (.getElementById js/document "canvas")
-        ctx (.getContext el "2d")
-        w 1000
-        h 1000]
-
-    (.clearRect ctx 0 0 w h)
-    (set! (.-fillStyle ctx) "#fff")
-    (.fillRect ctx 0 0 w h)))
-
-(defn render-cell [ctx x y type]
-  (set! (.-fillStyle ctx) (get cell-colors type "#eee"))
-  (.fillRect (* 24 x) (* y 24))
-  [:div
-   {:style {:float         "left"
-            :clear         (if (zero? x) "left")
-            :width         "24px"
-            :height        "24px"
-            :background    (get cell-colors type "#eee")
-            :border-radius "0.5em"
-            :margin        "1px"
-            :border-right  "1px solid #777"
-            :border-bottom "1px solid #777"}}])
-
-(defn render-loop []
-  (js/requestAnimationFrame render-loop)
-  (render!))
-
-(defonce !el (atom nil))
+       ^{:key (:interval state)}
+       (game-container !state (rum/react !tick-interval)))]))
 
 (defn ^:export init []
   (js/console.log "init!")
