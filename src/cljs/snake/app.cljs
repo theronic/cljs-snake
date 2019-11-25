@@ -21,6 +21,7 @@
 (def !tick-interval (rum/cursor-in !state [:interval]))
 (def !paused? (rum/cursor-in !state [:paused?]))
 (def !dead? (rum/cursor-in !state [:dead?]))
+(def !size (rum/cursor-in !state [:size]))
 
 (def cell-colors
   {:head "gold"
@@ -54,7 +55,6 @@
   nil)
 
 (defn next-state [{:as state :keys [position size velocity direction pills pill-density width height history]}]
-  ;(js/console.log "next state:" state)
   (let [snake         (set (take size history))
         found-pill?   (pills position)
         [dx dy] velocity
@@ -76,8 +76,7 @@
             :pills     (into pills new-pills)
             :size      (if found-pill? (inc size) size)})))
 
-(rum/defc world-view < rum/reactive ; rum/static
-  [!state]
+(rum/defc world-view < rum/reactive [!state]
   (let [{:as state :keys [pills size width height history position]} (rum/react !state)
         worm (set (take size history))]
     [:div
@@ -95,14 +94,13 @@
 
 (rum/defc game-container
   < rum/static
-    {:did-update   (fn [{:as state}]
+    {:did-update   (fn [state]
                      (js/clearInterval (::interval state))
                      (assoc state ::interval (js/setInterval #(when (and (not @!dead?) (not @!paused?))
                                                                 (swap! !state next-state))
                                                              @!tick-interval)))
      :did-mount    (fn [state]
-                     (let [key-handler (partial handle-keys! !state)
-                           comp        (:rum/react-component state)]
+                     (let [key-handler (partial handle-keys! !state)]
                        (.addEventListener js/window "keydown" key-handler)
                        (assoc state ::key-handler key-handler)))
      :will-unmount (fn [state]
@@ -115,23 +113,19 @@
    [:pre {:style {:clear "left"}}
     "Game State: " (with-out-str (pprint/pprint @!state))]]) ;(rum/react !state))])
 
-(def size (rum/cursor-in !state [:size]))
-
 (rum/defc parent-component < rum/reactive [!state]
   (let [state (rum/react !state)]
     [:div
      [:p
       [:button {:on-click #(reset! !state initial-state)} "New Game"]
       [:button {:on-click #(swap! !state next-state)} "Tick!"] " "
-      [:button {:on-click #(swap! size inc)} "Grow!"] " "
+      [:button {:on-click #(swap! !size inc)} "Grow!"] " "
       [:button {:on-click #(swap! !paused? not)} (if @!paused? "Unpause" "Pause")]]
-     [:h2 "Score: " (- (rum/react size) (:size initial-state))]
+     [:h2 "Score: " (- (rum/react !size) (:size initial-state))]
      (if (:dead? state)
        [:div
         [:h2 "Game Over"]]
-       ^{:key (:interval state)}
-       (game-container !state (rum/react !tick-interval)))]))
+       ^{:key (:interval state)} (game-container !state (rum/react !tick-interval)))]))
 
 (defn ^:export init []
-  (js/console.log "init!")
   (rum/mount (parent-component !state) (.getElementById js/document "container")))
