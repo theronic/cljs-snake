@@ -18,9 +18,9 @@
    :interval     250})
 
 (defonce !state (atom initial-state))
-(def !tick-interval (rum/cursor !state [:interval]))
-(def !paused? (rum/cursor !state [:paused?]))
-(def !dead? (rum/cursor !state [:dead?]))
+(def !tick-interval (rum/cursor-in !state [:interval]))
+(def !paused? (rum/cursor-in !state [:paused?]))
+(def !dead? (rum/cursor-in !state [:dead?]))
 
 (def cell-colors
   {:head "gold"
@@ -76,9 +76,10 @@
             :pills     (into pills new-pills)
             :size      (if found-pill? (inc size) size)})))
 
-(rum/defc world-view < rum/static
-  [{:as state :keys [pills size width height history position]}]
-  (let [worm (set (take size history))]
+(rum/defc world-view < rum/reactive ; rum/static
+  [!state]
+  (let [{:as state :keys [pills size width height history position]} (rum/react !state)
+        worm (set (take size history))]
     [:div
      (for [y (range height)
            x (range width)]
@@ -93,33 +94,35 @@
 (def last-render (atom nil))
 
 (rum/defc game-container
-  < rum/reactive
-    {:did-mount    (fn [state]
+  < rum/static
+    {:did-update   (fn [{:as state}]; :keys [interval]]
+                     (js/console.log "update!" (pr-str state))
+                     (js/clearInterval (::interval state))
+                     (assoc state ::interval (js/setInterval #(when (and (not @!dead?) (not @!paused?))
+                                                                (let [last @last-render]
+                                                                  (js/console.log "tick!" (- (reset! last-render (js/Date.)) last)))
+                                                                (swap! !state next-state))
+                                                             ;(rum/request-render comp))
+                                                             @!tick-interval)))
+     :did-mount    (fn [state]
                      (js/console.log "mount!")
                      (let [key-handler (partial handle-keys! !state)
                            comp        (:rum/react-component state)]
                        (.addEventListener js/window "keydown" key-handler)
-                       (assoc state ::interval (js/setInterval #(when (and (not @!dead?) (not @!paused?))
-                                                                  (let [last @last-render]
-                                                                    (js/console.log "tick!" (- (reset! last-render (js/Date.)) last)))
-                                                                  (swap! !state next-state)
-                                                                  (rum/request-render comp)) @!tick-interval)
-                                    ;(rum/request-render comp)) @!tick-interval)
-                                    ::key-handler key-handler)))
+                       (assoc state
+                         ::key-handler key-handler)))
      :will-unmount (fn [state]
                      (js/console.log "unmount!" (pr-str (:rum/args state)))
                      (js/clearInterval (::interval state))
                      (.removeEventListener js/window "keydown" (::key-handler state))
                      (dissoc state ::interval ::key-handler))}
-  [!state !tick-interval]
-  (let [state (rum/react !state)
-        interval (rum/react !tick-interval)]
-    [:div
-     (world-view state)
-     [:pre {:style {:clear "left"}}
-      "Game State: " (with-out-str (pprint/pprint state))]])) ;(rum/react !state))])
+  [!state interval]
+  [:div
+   (world-view !state)
+   [:pre {:style {:clear "left"}}
+    "Game State: " (with-out-str (pprint/pprint @!state))]]) ;(rum/react !state))])
 
-(def size (rum/cursor !state [:size]))
+(def size (rum/cursor-in !state [:size]))
 
 (rum/defc parent-component < rum/reactive [!state]
   (let [state (rum/react !state)]
@@ -128,14 +131,13 @@
       [:button {:on-click #(reset! !state initial-state)} "New Game"]
       [:button {:on-click #(swap! !state next-state)} "Tick!"] " "
       [:button {:on-click #(swap! size inc)} "Grow!"] " "
-      [:button {:on-click #(swap! !tick-interval - 15)} "Faster"] " "
-      [:button {:on-click #(swap! !tick-interval + 15)} "Slower"] " "
       [:button {:on-click #(swap! !paused? not)} (if @!paused? "Unpause" "Pause")]]
      [:h2 "Score: " (- (rum/react size) (:size initial-state))]
      (if (:dead? state)
        [:div
         [:h2 "Game Over"]]
-       ^{:key (:interval state)} (game-container !state !tick-interval))])) ;; !tick-interval]))
+       ^{:key (:interval state)}  ;(::ainterval state)
+       (game-container !state (rum/react !tick-interval)))])) ;; !tick-interval]))
 
 (defonce !interval (atom nil))
 
